@@ -1,7 +1,21 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "fairbanks-shakespeare",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry"
+  "main": "@tanstack/react-start/server-entry",
+  "routes": [
+    {
+      "pattern": "fairbanks-shakes.scottkey.dev",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "BETTER_AUTH_URL": "https://fairbanks-shakes.scottkey.dev"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  }
 }
