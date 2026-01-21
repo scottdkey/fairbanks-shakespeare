@@ -1,36 +1,92 @@
-name: Deploy to Cloudflare Workers
+name: Deploy
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  deploy-development:
     runs-on: ubuntu-latest
-    name: Deploy
-    environment: demo
+    name: Deploy Development
+    environment: development
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install main dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Install Sanity dependencies
+        run: npm ci
+        working-directory: sanity
 
-      - name: Deploy to Cloudflare Workers
+      - name: Build main site
+        run: npm run build
+        env:
+          SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+          SANITY_DATASET: ${{ vars.SANITY_DATASET }}
+
+      - name: Build Sanity Studio
+        run: npm run build
+        working-directory: sanity
+
+      - name: Copy Sanity Studio to dist/admin
+        run: cp -r sanity/dist dist/admin
+
+      - name: Deploy to Cloudflare Pages (Development)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --keep-vars
+          command: pages deploy dist --project-name=fairbanks-shakespeare --branch=development
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    name: Deploy Production
+    environment: production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: deploy-development
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install main dependencies
+        run: npm ci
+
+      - name: Install Sanity dependencies
+        run: npm ci
+        working-directory: sanity
+
+      - name: Build main site
+        run: npm run build
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+          SANITY_DATASET: ${{ vars.SANITY_DATASET }}
+
+      - name: Build Sanity Studio
+        run: npm run build
+        working-directory: sanity
+
+      - name: Copy Sanity Studio to dist/admin
+        run: cp -r sanity/dist dist/admin
+
+      - name: Deploy to Cloudflare Pages (Production)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=fairbanks-shakespeare --branch=main

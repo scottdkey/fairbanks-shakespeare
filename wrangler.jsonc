@@ -3,15 +3,10 @@
   "name": "fairbanks-shakespeare",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
-  "routes": [
-    {
-      "pattern": "fairbanks-shakes.scottkey.dev",
-      "custom_domain": true
-    }
-  ],
+  "pages_build_output_dir": "dist",
   "vars": {
-    "BETTER_AUTH_URL": "https://fairbanks-shakes.scottkey.dev"
+    "SANITY_PROJECT_ID": "e2afdarw",
+    "SANITY_DATASET": "production"
   },
   "observability": {
     "logs": {
