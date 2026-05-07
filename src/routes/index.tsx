@@ -10,7 +10,6 @@ type HomePageData = {
 }
 
 const getHomePage = query(async () => {
-  'use server'
   const data = await sanityClient.fetch<HomePageData | null>(
     `*[_type == "homePage"][0]{
       title,
